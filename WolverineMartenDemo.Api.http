@@ -1,0 +1,6 @@
+@WolverineMartenDemo.Api_HostAddress = http://localhost:5192
+
+GET {{WolverineMartenDemo.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
