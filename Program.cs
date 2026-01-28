@@ -1,6 +1,5 @@
 using Marten;
 using Wolverine;
-using Wolverine.Http;
 using Wolverine.Marten;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +9,8 @@ builder.Services.AddMarten(opts =>
 {
     opts.Connection(builder.Configuration.GetConnectionString("postgres"));
 })
+// This adds configuration with Wolverine's transactional outbox and
+// Marten middleware support to Wolverine
 .IntegrateWithWolverine();
 
 // Wolverine usage is required for WolverineFx.Http
