@@ -10,9 +10,6 @@ public class OrderSaga : Saga
     // This is the saga correlation id
     public Guid Id { get; set; }
 
-    public static Guid Identify(StartOrder e) => e.OrderId;
-    public static Guid Identify(OrderCompleted e) => e.OrderId;
-
     // Saga STARTS when OrderStarted event is published
     public static OrderSaga Start(
         OrderStarted e,

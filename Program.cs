@@ -1,56 +1,80 @@
-using JasperFx;
+﻿using JasperFx;
 using JasperFx.Resources;
 using Marten;
+using Weasel.Core;
 using Wolverine;
 using Wolverine.Http;
 using Wolverine.Marten;
 using WolverineMartenDemo.Sagas;
+using WolverineMartenDemo.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Marten configuration
+// --------------------
+// Marten + Wolverine
+// --------------------
 builder.Services.AddMarten(opts =>
 {
     opts.Connection(builder.Configuration.GetConnectionString("postgres"));
     opts.DatabaseSchemaName = "public";
+
+    // Let Marten create tables automatically
+    opts.AutoCreateSchemaObjects = AutoCreate.All;
+
+    // We are using Guid stream ids
+    opts.Events.StreamIdentity = JasperFx.Events.StreamIdentity.AsGuid;
 })
-// This adds configuration with Wolverine's transactional outbox and
-// Marten middleware support to Wolverine
-.IntegrateWithWolverine();
+// Integrate Marten with Wolverine's transactional outbox
+.IntegrateWithWolverine()
 
-builder.Services.AddResourceSetupOnStartup();
-
-// Wolverine usage is required for WolverineFx.Http
-builder.Host.UseWolverine(opts =>
+// 🔥 EXPLICIT EVENT FORWARDING (THIS IS THE FIX)
+.EventForwardingToWolverine(cfg =>
 {
-    opts.Services.AddResourceSetupOnStartup();
-    // Tell Wolverine to scan this assembly
-    opts.Discovery.IncludeAssembly(typeof(OrderSaga).Assembly);
+    // Forward Marten events as Wolverine messages
+    cfg.SubscribeToEvent<OrderStarted>()
+       .TransformedTo(e => e.Data);
 
-    // This middleware will apply to the HTTP
-    // endpoints as well
-    opts.Policies.AutoApplyTransactions();
-
-    // Setting up the outbox on all locally handled
-    // background tasks
-    opts.Policies.UseDurableLocalQueues();
+    cfg.SubscribeToEvent<OrderCompleted>()
+       .TransformedTo(e => e.Data);
 });
 
+// Ensure resources (DB schema, queues) are ready on startup
+builder.Services.AddResourceSetupOnStartup();
+
+// --------------------
+// Wolverine host
+// --------------------
+builder.Host.UseWolverine(opts =>
+{
+    // 🔥 Tell Wolverine to scan this assembly for handlers & sagas
+    opts.Discovery.IncludeAssembly(typeof(OrderSaga).Assembly);
+
+    // Apply DB transactions automatically
+    opts.Policies.AutoApplyTransactions();
+
+    // ⚠️ IMPORTANT: Do NOT enable durable queues while debugging
+    // opts.Policies.UseDurableLocalQueues();
+});
+
+// --------------------
+// HTTP + Swagger
+// --------------------
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Wolverine HTTP endpoints
 builder.Services.AddWolverineHttp();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Let's add in Wolverine HTTP endpoints to the routing tree
+// Map Wolverine HTTP routes
 app.MapWolverineEndpoints();
 
+// Run host
 return await app.RunJasperFxCommands(args);
