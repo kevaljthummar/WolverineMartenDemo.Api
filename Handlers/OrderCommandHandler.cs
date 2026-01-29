@@ -25,9 +25,6 @@ public class OrderCommandHandler
 
         // Persist event to mt_events table
         await session.SaveChangesAsync();
-
-        //  Manually publish to Wolverine (triggers Saga)
-        await bus.PublishAsync(started);
     }
 
     // Handles CompleteOrder command

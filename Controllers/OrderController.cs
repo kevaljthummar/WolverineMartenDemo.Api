@@ -14,7 +14,7 @@ public class OrderController
         _bus = bus;
     }
 
-    [WolverinePost("/api/orders/start")]
+    [WolverinePost("orders/start")]
     public async Task<IResult> StartOrder()
     {
         var orderId = Guid.NewGuid();
