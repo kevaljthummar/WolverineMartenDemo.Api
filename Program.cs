@@ -27,7 +27,7 @@ builder.Services.AddMarten(opts =>
 // Integrate Marten with Wolverine's transactional outbox
 .IntegrateWithWolverine()
 
-// 🔥 EXPLICIT EVENT FORWARDING (THIS IS THE FIX)
+// EXPLICIT EVENT FORWARDING
 .EventForwardingToWolverine(cfg =>
 {
     // Forward Marten events as Wolverine messages
@@ -46,13 +46,13 @@ builder.Services.AddResourceSetupOnStartup();
 // --------------------
 builder.Host.UseWolverine(opts =>
 {
-    // 🔥 Tell Wolverine to scan this assembly for handlers & sagas
+    // Tell Wolverine to scan this assembly for handlers & sagas
     opts.Discovery.IncludeAssembly(typeof(OrderSaga).Assembly);
 
     // Apply DB transactions automatically
     opts.Policies.AutoApplyTransactions();
 
-    // ⚠️ IMPORTANT: Do NOT enable durable queues while debugging
+    // IMPORTANT: Do NOT enable durable queues while debugging
     // opts.Policies.UseDurableLocalQueues();
 });
 

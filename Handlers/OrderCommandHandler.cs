@@ -1,4 +1,5 @@
 ﻿using Marten;
+using Wolverine;
 using WolverineMartenDemo.Commands;
 using WolverineMartenDemo.Domain;
 using WolverineMartenDemo.Events;
@@ -9,8 +10,10 @@ namespace WolverineMartenDemo.Handlers;
 public class OrderCommandHandler
 {
     // Handles StartOrder command
-    public async Task Handle(StartOrder cmd, IDocumentSession session)
+    public async Task Handle(StartOrder cmd, IDocumentSession session, IMessageBus bus)
     {
+        Console.WriteLine("Start handler hit");
+
         // Create first event
         var started = new OrderStarted(cmd.OrderId);
 
@@ -22,6 +25,9 @@ public class OrderCommandHandler
 
         // Persist event to mt_events table
         await session.SaveChangesAsync();
+
+        //  Manually publish to Wolverine (triggers Saga)
+        await bus.PublishAsync(started);
     }
 
     // Handles CompleteOrder command
