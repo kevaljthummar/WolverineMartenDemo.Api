@@ -1,6 +1,6 @@
 ﻿namespace WolverineMartenDemo.Events;
 
 // Event = something that already happened
-public record OrderStarted(string OrderId);
+public record OrderStarted(Guid OrderId);
 
-public record OrderCompleted(string OrderId);
+public record OrderCompleted(Guid OrderId);

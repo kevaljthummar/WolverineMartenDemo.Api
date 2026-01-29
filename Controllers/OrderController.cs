@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Wolverine;
+using Wolverine.Http;
 using WolverineMartenDemo.Commands;
 
 namespace WolverineMartenDemo.Controllers;
 
-[ApiController]
-[Route("orders")]
-public class OrderController : ControllerBase
+public class OrderController
 {
     private readonly IMessageBus _bus;
 
@@ -15,14 +14,14 @@ public class OrderController : ControllerBase
         _bus = bus;
     }
 
-    [HttpPost("start")]
-    public async Task<IActionResult> StartOrder()
+    [WolverinePost("/api/orders/start")]
+    public async Task<IResult> StartOrder()
     {
-        var orderId = Guid.NewGuid().ToString();
+        var orderId = Guid.NewGuid();
 
         // Send command to Wolverine
         await _bus.SendAsync(new StartOrder(orderId));
 
-        return Ok(new { OrderId = orderId });
+        return Results.Ok(new { OrderId = orderId });
     }
 }

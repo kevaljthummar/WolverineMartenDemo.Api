@@ -5,7 +5,7 @@ namespace WolverineMartenDemo.Domain;
 // Aggregate rebuilt from events
 public class Order
 {
-    public string Id { get; private set; } = default!;
+    public Guid Id { get; private set; } = default!;
     public bool IsCompleted { get; private set; }
 
     // Apply methods are used by Marten

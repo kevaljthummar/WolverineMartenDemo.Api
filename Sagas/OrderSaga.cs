@@ -8,13 +8,18 @@ namespace WolverineMartenDemo.Sagas;
 public class OrderSaga : Saga
 {
     // This is the saga correlation id
-    public string? Id { get; set; }
+    public Guid Id { get; set; }
+
+    public static Guid Identify(StartOrder e) => e.OrderId;
+    public static Guid Identify(OrderCompleted e) => e.OrderId;
 
     // Saga STARTS when OrderStarted event is published
     public static OrderSaga Start(
         OrderStarted e,
         IMessageBus bus)
     {
+        Console.WriteLine("🔥 OrderSaga STARTED");
+
         // Send next command
         bus.SendAsync(new CompleteOrder(e.OrderId));
 
@@ -28,6 +33,8 @@ public class OrderSaga : Saga
     // Saga CONTINUES when OrderCompleted event arrives
     public void Handle(OrderCompleted e)
     {
+        Console.WriteLine("✅ SAGA COMPLETED");
+
         // Workflow is finished
         MarkCompleted();
     }
